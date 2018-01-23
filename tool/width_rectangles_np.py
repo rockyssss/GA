@@ -1,6 +1,7 @@
 # _*_ coding: UTF-8 _*_
 import copy
 import numpy as np
+import dao.rectangle_index as ri
 
 """
     编写等宽矩形行
@@ -12,7 +13,7 @@ def averageWidth_np(rectangles):
     best_width_np(rectangles)
     sum = 0
     for rectangle in rectangles:
-        width = rectangles[3]
+        width = rectangles[ri.W_INDEX]
         sum += width
     aequilate = sum / len(rectangles)
     return aequilate
@@ -25,8 +26,8 @@ def averageWidth_np(rectangles):
 # 输入:房间总信息,平均宽
 def lenPoinAftAequilate(rectangles, aequilate):
     for rectangle in rectangles:
-        rectangle[2] =rectangle[2] * rectangle[3] / aequilate
-        rectangle[3] = aequilate
+        rectangle[ri.L_INDEX] =rectangle[ri.L_INDEX] * rectangle[ri.W_INDEX] / aequilate
+        rectangle[ri.W_INDEX] = aequilate
 
 
 
@@ -34,16 +35,16 @@ def lenPoinAftAequilate(rectangles, aequilate):
 
 def best_width_np(rectangles):
     """
-        x_index = 0
-        y_index = 1
-        l_index = 2
-        w_index = 3
-        space_id_index = 4
-        type_index = 5
-        b1_index = 6
-        b2_index = 7
-        b3_index = 8
-        b4_index = 9
+        X_INDEX = 0
+        Y_INDEX = 1
+        L_INDEX = 2
+        W_INDEX = 3
+        SPACE_ID_INDEX = 4
+        TYPE_INDEX = 5
+        B1_INDEX = 6
+        B2_INDEX = 7
+        B3_INDEX = 8
+        B4_INDEX = 9
 
         :param rectanges:
         :return:
@@ -51,8 +52,8 @@ def best_width_np(rectangles):
     widths = []
     lengths = []
     for rectangle in rectangles:
-        widths.append(rectangle[3])
-        lengths.append(rectangle[2])
+        widths.append(rectangle[ri.W_INDEX])
+        lengths.append(rectangle[ri.L_INDEX])
 
     # 取得长宽的偏差
     # bw bl存储最佳长宽
@@ -128,8 +129,8 @@ def best_width_np(rectangles):
 
     # 得到最佳长宽后,更新spaces
     for i, rec in enumerate(rectangles):
-        rectangle[3]= bw[i]
-        rectangle[2]= bl[i]
+        rectangle[ri.W_INDEX]= bw[i]
+        rectangle[ri.L_INDEX]= bl[i]
 
 
 
