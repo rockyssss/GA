@@ -10,7 +10,7 @@ import numpy as np
 from datetime import time, datetime
 import os
 import copy
-
+from timeit import default_timer as time
 from tool.GA_tools import isnumber
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -19,14 +19,15 @@ import sys
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
-
+from numba import jit
 import planinitrunner.runtest2 as runtest2
 from dao import spaceApoint as sap
 from tool import csvBrief
 from planinitrunner import translation, plot_draw
+from numba import jit
 
 POP_SIZE = 2
-N_GENERATIONS = 1
+N_GENERATIONS = 10
 BOUND = [[[0, 36], [-1, 11]], [[36, 81.1], [0, 81]]]  # 区域xy边界区间集合列表
 S = 0  # 根据区域边界算出的总面积
 BOUND_s = []  # 各个区域边界区间内的面积
@@ -85,8 +86,10 @@ for i in operation_index_list:
     operation_area += SPACE_AREA[i]*SPACE_NUM[i]
 operation_area_ratio_sqr = (operation_area / S) ** 0.5
 operation_len_ratio = 0
+# @jit
 class GA(object):
     # def __init__(self, DNA_size, cross_rate, mutation_rate, pop_size, ):
+    # @jit
     def __init__(self, bound, pop_size, name_list, width, length, index_dict, type_list, space_num_list,
                  spaces_type_list, bound_s, s):
         # self.DNA_size = DNA_size
@@ -134,6 +137,7 @@ class GA(object):
             all_species.append(all_spaces)
         self.all_species = all_species
 
+    # @jit
     def get_cost(self, all_species, bound, length, width):
         all_species_cost = []
         for all_spaces in all_species:
@@ -194,20 +198,25 @@ class GA(object):
             #         size_cost = size_cost + abs(lw_ratio - lw_ratio_csv)
             #         size_cost_index.add(index)
             sum_cost = (cross_cost + over_bound)
+            min_index = np.argmin(np.array(sum_cost))
+            # min_space = [sum_cost[min_index], ]
             individual = [sum_cost, cross_cost, cross_cost_index, over_bound, over_bound_index]
             all_species_cost.append(individual)
+
+            # all_species.append(copy.deepcopy(all_species[min_index]))
         return all_species_cost
 
+    # @jit
     def mutate(self, bound, all_species_cost, all_species):
         min_index = np.argmin(np.array(all_species_cost)[:, 0])
         # max_index = np.argmax(np.array(all_species_cost)[:, 0])
-        all_species.append(copy.deepcopy(all_species[min_index]))
+        # all_species.append(copy.deepcopy(all_species[min_index]))
         # all_species_cost.append(all_species_cost[min_index])
         for index, individual in enumerate(all_species_cost):
             all_spaces = all_species[index]
             [sum_cost, cross_cost, cross_cost_index, over_bound, over_bound_index] = individual
-            # if sum_cost > all_species_cost[min_index][0] and random.randint(1, 9) % 3 == 0:
-            if sum_cost > all_species_cost[min_index][0] or index == len(all_species_cost):
+            if sum_cost > all_species_cost[min_index][0] and random.randint(1, 9) % 3 == 0:
+            # if sum_cost > all_species_cost[min_index][0] or index == len(all_species_cost):
 
                 for space_index in cross_cost_index:
                     space = all_spaces[space_index]
@@ -286,6 +295,7 @@ class TravelSalesPerson(object):
 
         # plt.ion()
 
+    # @jit
     def plotting(self, best_idx, all_species):
         plt.cla()
         spaces = all_species[best_idx]
@@ -295,9 +305,10 @@ class TravelSalesPerson(object):
 
 
 ga = GA(BOUND, POP_SIZE, Aname, WIDTH, LENGTH, DICT, SPACE_TYPE, SPACE_NUM, SPACE_TYPE, BOUND_s, S)
-starttime = datetime.now()
+starttime = time()
 print(starttime)
 for generation in range(N_GENERATIONS):
+    gs = time()
     all_species = ga.all_species
     bound = ga.bound
     # lx, ly分别为每一代中x,y坐标矩阵，每一行为每个个体对应点坐标
@@ -316,10 +327,42 @@ for generation in range(N_GENERATIONS):
     #endtime = datetime.now()
     #print(endtime)
     #print((endtime - starttime).seconds)
+    gd = time()
     plt.pause(0.00001)
-endtime = datetime.now()
+    print(gd - gs)
+endtime = time()
 print(endtime)
-print((endtime - starttime).seconds)
+print(endtime - starttime)
 
 plt.ioff()
 plt.show()
+
+
+# starttime = datetime.now()
+# print(starttime)
+# for generation in range(N_GENERATIONS):
+#     all_species = ga.all_species
+#     bound = ga.bound
+#     # lx, ly分别为每一代中x,y坐标矩阵，每一行为每个个体对应点坐标
+#     # lx, ly = ga.translateDNA(ga.pop, env.city_position)
+#     # 通过计算每个个体中点的距离和，将距离和作为惩罚系数（除数）获取适应度，返回适应度及总距离
+#     all_species_cost = ga.get_cost(all_species, bound, ga.length, ga.width)
+#     # 进化过程主要
+#     ga.mutate(bound, all_species_cost, all_species)
+#     all_species_cost = np.array(all_species_cost)
+#     best_idx = np.argmin(all_species_cost[:, 0])
+#     print('Gen:', generation, 'best individual is:', best_idx, '| best fit: %.2f' % all_species_cost[best_idx][0], )
+#     env = TravelSalesPerson(best_idx, all_species)
+#     env.plotting(best_idx, all_species)
+#     if all_species_cost[best_idx][0] == 0:
+#         break
+#     #endtime = datetime.now()
+#     #print(endtime)
+#     #print((endtime - starttime).seconds)
+#     plt.pause(0.00001)
+# endtime = datetime.now()
+# print(endtime)
+# print((endtime - starttime).seconds)
+#
+# plt.ioff()
+# plt.show()

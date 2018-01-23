@@ -8,9 +8,10 @@ sys.path.append(rootPath)
 
 
 import os
-
+import numpy as np
 from dao import spaceApoint as sap
-from planinitrunner import plot_draw, get_cpd
+from dao import GAspaceApoint2 as GAsap
+# from planinitrunner import plot_draw, get_cpd
 from tool import csvBrief, other, widthRectangles, spacesChanges, corridor, Direction2Point
 from tool import lengthAndWidth as lw
 from planinitrunner import AreaAndNumber
@@ -89,23 +90,23 @@ def linear(total_area):
 #     dict[Atype[id]] = id
 
 
-def ruffle(Aname, Atype, p, cpdPath, Anum):
-    # dict {'51441115': 0, '51443500': 1, '51442113': 2, '51172100': 3, '51171300': 4, '51348400': 5,....
-    dict = {}
-    for id in range(len(Aname)):
-        dict[Atype[id]] = id
-    # 写一个dict用来解决临接关系的顺序问题
-
-    # p = {'51442115': 1}
-    # dict = {'51578800': 0, '51172100': 1, '51445500': 2, '51443315': 3, '51442115': 4, '51442113': 5, '51543115': 6}
-    # list1 = [2, 2, 3, 1, 2, 2, 1]
-
-    cpd = get_cpd.Cpd(cpdPath)
-    # lists  房间编号:对应的临接概率, 最后一位是你给它的房间编号集合
-    lists = get_cpd.get_cpd(p, cpd)
-    # values:<class 'list'>: ['65131300', '65131300', '51444500', '51444500', '65131100', '65131100', '51178400', '51178400', '51443911', '51348000', '51172382', '51178600', '51178000']
-    values = get_cpd.loop(p, dict, lists, Anum, cpdPath)
-    return values
+# def ruffle(Aname, Atype, p, cpdPath, Anum):
+#     # dict {'51441115': 0, '51443500': 1, '51442113': 2, '51172100': 3, '51171300': 4, '51348400': 5,....
+#     dict = {}
+#     for id in range(len(Aname)):
+#         dict[Atype[id]] = id
+#     # 写一个dict用来解决临接关系的顺序问题
+#
+#     # p = {'51442115': 1}
+#     # dict = {'51578800': 0, '51172100': 1, '51445500': 2, '51443315': 3, '51442115': 4, '51442113': 5, '51543115': 6}
+#     # list1 = [2, 2, 3, 1, 2, 2, 1]
+#
+#     cpd = get_cpd.Cpd(cpdPath)
+#     # lists  房间编号:对应的临接概率, 最后一位是你给它的房间编号集合
+#     lists = get_cpd.get_cpd(p, cpd)
+#     # values:<class 'list'>: ['65131300', '65131300', '51444500', '51444500', '65131100', '65131100', '51178400', '51178400', '51443911', '51348000', '51172382', '51178600', '51178000']
+#     values = get_cpd.loop(p, dict, lists, Anum, cpdPath)
+#     return values
 
 
 def get_bic_data(Aname, Anum, Aarea, Alength, Awidth, values, dict):
@@ -210,19 +211,36 @@ def addOneSpace(spaces, beginPoint, Clength, Cwidth, name, type, direction):
     spaces.append(space)
 
 
+def GAaddOneSpace(spaces, beginPoint, Clength, Cwidth, name, type, direction):
+    """
+
+    :param beginPoint:
+    :param Clength:
+    :param Cwidth:
+    :param name: name自己注入
+    :return:
+    """
+    rectangle = np.array([GAsap.Rectangle(Clength, Cwidth, beginPoint, direction, np.ones((4, 1)) * -25)])
+    # 34清洁走廊
+    space = sap.Space(name, type, rectangle)
+    spaces.append(space)
+
+
 def get_spaces_bound(spaces):
     """
     获取spaces中最大最小的坐标点[max_xy, min_xy]
     :param spaces:
     :return:[max_xy, min_xy]
     """
-    max_xy = copy.deepcopy(spaces[0].rectangle[0].point3d)
-    min_xy = copy.deepcopy(spaces[0].rectangle[0].point3d)
+    max_xy = sap.Point3D(spaces[0].rectangle[0].point3d.x, spaces[0].rectangle[0].point3d.y,
+                         spaces[0].rectangle[0].point3d.z)
+    min_xy = sap.Point3D(spaces[0].rectangle[0].point3d.x, spaces[0].rectangle[0].point3d.y,
+                         spaces[0].rectangle[0].point3d.z)
     for index, space in enumerate(spaces):
         # if index == 0:mnm
         [temp_max, temp_min] = get_space_xy_bound(space)
-        max_xy = sap.Point3D(max(temp_max.x, max_xy.x),max((temp_max.y, max_xy.y)),max(temp_max.z, max_xy.z))
-        min_xy = sap.Point3D(min(min_xy.x, temp_min.x),min((min_xy.y, temp_min.y)),min(min_xy.z, temp_min.z))
+        max_xy = sap.Point3D(max(temp_max.x, max_xy.x), max((temp_max.y, max_xy.y)),max(temp_max.z, max_xy.z))
+        min_xy = sap.Point3D(min(min_xy.x, temp_min.x), min((min_xy.y, temp_min.y)),min(min_xy.z, temp_min.z))
         # if temp_max.x >= max_xy.x and temp_max.y >= max_xy.y:
         #     max_xy = copy.deepcopy(temp_max)
         # if temp_min.x <= min_xy.x and temp_min.y <= min_xy.y:
@@ -230,6 +248,14 @@ def get_spaces_bound(spaces):
         max_min = [max_xy, min_xy]
     return max_min
 
+def get_np_space_xy_bound(space):
+    """
+
+    获取space中最大最小的坐标点,返回[max_xy, min_xy]
+    :param space: np数据类型的space
+    :return:np.array([max_xy, min_xy])
+    """
+    pass
 
 def get_space_xy_bound(space):
     """
@@ -238,15 +264,15 @@ def get_space_xy_bound(space):
     :return:[max_xy, min_xy]
     """
     direction = space.rectangle[0].Direction
-    start_point = copy.deepcopy(space.rectangle[0].point3d)
+    start_point = space.rectangle[0].point3d
     if direction.dx != 0:
         end_point = sap.Point3D(start_point.x + float(space.rectangle[0].length) * direction.dx,
                                 start_point.y + float(space.rectangle[0].width) * direction.y, 0)
     else:
         end_point = sap.Point3D(start_point.x + float(space.rectangle[0].width) * direction.x,
                                 start_point.y + float(space.rectangle[0].length) * direction.dy, 0)
-    min_xy = copy.deepcopy(start_point)
-    max_xy = copy.deepcopy(end_point)
+    min_xy = start_point
+    max_xy = end_point
     # min_xy = sap.point3d(start_point.point3d.x, start_point.point3d.y, 0)
     # max_xy = sap.point3d(end_point.point3d.x, end_point.point3d.y, 0)
     min_x = min(min_xy.x, max_xy.x)

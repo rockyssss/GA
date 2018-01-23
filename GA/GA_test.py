@@ -7,9 +7,11 @@ import random
 
 import matplotlib.pyplot as plt
 import numpy as np
-from datetime import time, datetime
+# from datetime import time, datetime
+from timeit import default_timer as time
 import os
 import copy
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 import sys
 from tool.GA_tools import isnumber
@@ -17,17 +19,21 @@ from tool.GA_tools import isnumber
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
-
+from numba import jit
 import planinitrunner.runtest2 as runtest2
-from dao import spaceApoint as sap
+from dao import GAspaceApoint2 as sap
 from tool import csvBrief
 from planinitrunner import translation, plot_draw
-
-POP_SIZE = 2
-N_GENERATIONS = 21600
+DT = 1
+POP_SIZE = 10000
+N_GENERATIONS = 100000
 SPACE_TYPE = ['51449600', '51446500', '51442113', '51171300', '51543115', '51172100',
               '51446300', '51348400', '51446100', '51448700']
-SPACE_NUM = [2, 2, 2, 2, 2, 2, 2, 2, 2, 0]
+# SPACE_NUM = [2, 2, 2, 2, 2, 2, 2, 2, 2, 0]
+SPACE_NUM = [2, 2, 0, 0, 0, 0, 0, 0, 0, 0]
+DG = {'51449600': 3, '51446500': 2, '51442113': 1}
+D_EN = [5, 0, 0]
+P_EN = [5, 25, 0]
 BOUND = [[[0, 50], [0, 25]]]
 ROOMS_NUM = 40
 Aname = ['麻醉准备间 ', '麻醉恢复区 ', '精密仪器室 ', '无菌包储存室 ', '一次性物品储存室 ', '体外循环室 ', '麻醉用品库 ', '总护士站 ', '快速灭菌', '腔镜洗消间',
@@ -37,7 +43,6 @@ Aname = ['麻醉准备间 ', '麻醉恢复区 ', '精密仪器室 ', '无菌包�
          '电梯', '楼梯', '洁净走廊', '清洁走廊', '管井', '前室', '前厅', '缓冲', '手术药品库 ', '保洁室 ', '谈话室', '污染被服暂存间 ', '值班室 (部分含卫生间)',
          '缓冲走廊',
          '麻醉科主任办公室 ', '一级手术室', '多功能复合手术室', '二级手术室', '三级手术室', '正负压转换手术室']
-
 
 dataPath2 = os.getcwd() + "/../file/ratio.csv"  # 长宽比数据
 data2 = csvBrief.readListCSV(dataPath2)
@@ -53,7 +58,7 @@ for id in range(len(TYPE)):
 class GA(object):
     # def __init__(self, DNA_size, cross_rate, mutation_rate, pop_size, ):
     def __init__(self, bound, pop_size, name_list, width, length, index_dict, type_list, space_num_list,
-                 spaces_type_list):
+                 spaces_type_list, d_en, p_en, dg):
         # self.DNA_size = DNA_size
         # self.cross_rate = cross_rate
         self.bound = bound
@@ -65,6 +70,9 @@ class GA(object):
         self.type_list = type_list
         self.space_num_list = space_num_list
         self.spaces_type_list = spaces_type_list
+        self.d_en = d_en
+        self.p_en = p_en
+        self.dg = dg
         # self.pop = np.vstack([np.random.permutation(DNA_size) for _ in range(pop_size)])
         # space_point = np.vstack([[np.random.rand(rooms_num, 2)*500] for _ in range(pop_size)])
         all_species = []
@@ -76,26 +84,30 @@ class GA(object):
             for index, p in enumerate(space_num_list):
                 if p != 0:
                     for bd in bound:
-                        position1 = np.random.rand(p, 1) * (bd[0][1]-bd[0][0]) + bd[0][0]
-                        position2 = np.random.rand(p, 1) * (bd[1][1]-bd[1][0]) + bd[1][0]
+                        position1 = np.random.rand(p, 1) * (bd[0][1] - bd[0][0]) + bd[0][0]
+                        position2 = np.random.rand(p, 1) * (bd[1][1] - bd[1][0]) + bd[1][0]
                         position = np.concatenate((position1, position2), axis=1)
                     for i in range(p):
                         begin_point = sap.Point3D(position[i][0], position[i][1], 0)
                         # 根据给定的spaces_type_list对应的type确定其space_type
                         space_type = spaces_type_list[index]
                         index_csv = index_dict[space_type]
-                        name = name_list[index_csv]+str(len(all_spaces))
+                        name = name_list[index_csv] + str(len(all_spaces))
                         # area = 30
                         # times = (length[index_csv]*width[index_csv]/area)**0.5
                         # space_len = length[index_csv]/times
                         # space_width = width[index_csv]/times
                         direction = sap.Direction(1, 0, 1, 1, 0)
-                        runtest2.addOneSpace(all_spaces, begin_point, 10, 5, name, space_type, direction)
+                        runtest2.GAaddOneSpace(all_spaces, begin_point, 10, 5, name, space_type, direction)
             all_species.append(all_spaces)
         self.all_species = all_species
 
-    def get_cost(self, all_species, bound, length, width):
+    # def route_cost(self,all_species,doctor,patien):
+
+    # @jit
+    def get_cost(self, all_species, bound, length, width, p_en, d_en, dg):
         # bound = [[[0, 500], [0, 500]]]
+        d = []
         all_species_cost = []
         for all_spaces in all_species:
             space_max_min = []
@@ -105,6 +117,12 @@ class GA(object):
             size_cost_index = set()
             over_bound = 0
             over_bound_index = set()
+            route_cost = 0
+            route_cost_dict = dict()
+            # 重叠的损失计算
+
+
+
             # 重叠的损失计算/超越边界计算
             for index, space in enumerate(all_spaces):
                 [max_xy, min_xy] = runtest2.get_space_xy_bound(space)
@@ -124,7 +142,21 @@ class GA(object):
                     if cross_x > -d_x or cross_y > -d_y:
                         over_bound = over_bound + abs(cross_x) + abs(cross_y)
                         over_bound_index.add(index)
-            # 重叠的损失计算
+
+                # 动线计算
+                cost = abs(space.rectangle[0].point3d.x - d_en[0]) + abs(space.rectangle[0].point3d.x - p_en[0]) + \
+                       abs(space.rectangle[0].point3d.y - d_en[1]) + abs(space.rectangle[0].point3d.y - p_en[1])
+                if cross_cost < 10:
+                    cost = cost*dg[space.type]
+                else:
+                    cost = cost * dg[space.type]*0.4
+                if space.type in route_cost_dict.keys():
+                    if cost > route_cost_dict[space.type][0]:
+                        route_cost_dict[space.type] = [cost, index]
+                else:
+                    route_cost_dict[space.type] = [cost, index]
+                route_cost += cost
+
             for index1, space1 in enumerate(all_spaces):
                 for index2, space2 in enumerate(all_spaces):
                     if index1 < index2:
@@ -134,6 +166,8 @@ class GA(object):
                         if cross_x < 0 and cross_y < 0:
                             cross_cost = cross_cost + abs(cross_x) + abs(cross_y)
                             cross_cost_index.add(index1)
+
+
             # # 尺寸损失计算
             # dataPath2 = os.getcwd() + "/../file/ratio.csv"  # 长宽比数据
             # data2 = csvBrief.readListCSV(dataPath2)
@@ -154,40 +188,54 @@ class GA(object):
             #     if lw_ratio < lw_ratio_csv - 0.3 or lw_ratio > lw_ratio_csv + 0.3:
             #         size_cost = size_cost + abs(lw_ratio - lw_ratio_csv)
             #         size_cost_index.add(index)
-            sum_cost = (cross_cost + over_bound)
-            individual = [sum_cost, cross_cost, cross_cost_index, over_bound, over_bound_index]
+            sum_cost = (cross_cost + over_bound + route_cost)
+            individual = [sum_cost, cross_cost, cross_cost_index, over_bound, over_bound_index, route_cost_dict]
             all_species_cost.append(individual)
         return all_species_cost
 
-    def mutate(self, bound, all_species_cost, all_species):
+    # @jit
+    def mutate(self, bound, all_species_cost, all_species, dt):
         min_index = np.argmin(np.array(all_species_cost)[:, 0])
         max_index = np.argmax(np.array(all_species_cost)[:, 0])
-        all_species.append(copy.deepcopy(all_species[min_index]))
-        all_species_cost.append(all_species_cost[min_index])
+        # all_species.append(copy.deepcopy(all_species[min_index]))
+        # all_species_cost.append(all_species_cost[min_index])
         for index, individual in enumerate(all_species_cost):
             all_spaces = all_species[index]
-            [sum_cost, cross_cost, cross_cost_index, over_bound, over_bound_index] = individual
+            [sum_cost, cross_cost, cross_cost_index, over_bound, over_bound_index, route_cost_dict] = individual
+            if sum_cost > all_species_cost[min_index][0]:
             # if sum_cost > all_species_cost[min_index][0] and random.randint(1, 9) % 3 == 0:
-            if sum_cost > all_species_cost[min_index][0] or index == len(all_species_cost):
+                # if sum_cost > all_species_cost[min_index][0] or index == len(all_species_cost):
+                st = list(route_cost_dict.values())
+                route_cost = set({int(i) for i in np.array(st)[:, 1]})
+                all_move_set = route_cost | cross_cost_index | over_bound_index
+                for space_index in all_move_set:
+                        space = all_spaces[space_index]
+                        spaces = [space]
+                        [max_xy, min_xy] = runtest2.get_space_xy_bound(space)
+                        translation.translation(spaces,
+                                                random.uniform(bound[0][0][0] - min_xy.x,
+                                                               bound[0][0][1] - max_xy.x) * dt,
+                                                random.uniform(bound[0][1][0] - min_xy.y,
+                                                               bound[0][1][1] - max_xy.y) * dt)
+                # for space_index in over_bound_index:
+                #     space = all_spaces[space_index]
+                #     spaces = [space]
+                #     [max_xy, min_xy] = runtest2.get_space_xy_bound(space)
+                #     translation.translation(spaces,
+                #                             random.uniform(bound[0][0][0] - min_xy.x,
+                #                                            bound[0][0][1] - max_xy.x) * dt,
+                #                             random.uniform(bound[0][1][0] - min_xy.y,
+                #                                            bound[0][1][1] - max_xy.y) * dt)
+                # for i in route_cost_dict.values():
+                #     space = all_spaces[i[1]]
+                #     spaces = [space]
+                #     [max_xy, min_xy] = runtest2.get_space_xy_bound(space)
+                #     translation.translation(spaces,
+                #                             random.uniform(bound[0][0][0] - min_xy.x,
+                #                                            bound[0][0][1] - max_xy.x) * dt,
+                #                             random.uniform(bound[0][1][0] - min_xy.y,
+                #                                            bound[0][1][1] - max_xy.y) * dt)
 
-                for space_index in cross_cost_index:
-                    space = all_spaces[space_index]
-                    spaces = [space]
-                    [max_xy, min_xy] = runtest2.get_space_xy_bound(space)
-                    translation.translation(spaces,
-                                            random.uniform(bound[0][0][0] - min_xy.x,
-                                                           bound[0][0][1] - max_xy.x),
-                                            random.uniform(bound[0][1][0] - min_xy.y,
-                                                           bound[0][1][1] - max_xy.y))
-                for space_index in over_bound_index:
-                    space = all_spaces[space_index]
-                    spaces = [space]
-                    [max_xy, min_xy] =runtest2.get_space_xy_bound(space)
-                    translation.translation(spaces,
-                                            random.uniform(bound[0][0][0] - min_xy.x,
-                                                           bound[0][0][1] - max_xy.x),
-                                            random.uniform(bound[0][1][0] - min_xy.y,
-                                                           bound[0][1][1] - max_xy.y))
             all_species[index] = all_spaces
 
             # for point in range(self.DNA_size):
@@ -247,6 +295,7 @@ class TravelSalesPerson(object):
 
         # plt.ion()
 
+    # @jit
     def plotting(self, best_idx, all_species):
         # plt.cla()
         spaces = all_species[best_idx]
@@ -255,32 +304,35 @@ class TravelSalesPerson(object):
         plt.pause(0.0000000000000000000001)
 
 
-ga = GA(BOUND, POP_SIZE, Aname, WIDTH, LENGTH, DICT, TYPE, SPACE_NUM, SPACE_TYPE)
-starttime = datetime.now()
+ga = GA(BOUND, POP_SIZE, Aname, WIDTH, LENGTH, DICT, TYPE, SPACE_NUM, SPACE_TYPE, D_EN, P_EN, DG)
+starttime = time()
 print(starttime)
+t = 1
 for generation in range(N_GENERATIONS):
+    gs = time()
     all_species = ga.all_species
     bound = ga.bound
+    t = t * DT
     # lx, ly分别为每一代中x,y坐标矩阵，每一行为每个个体对应点坐标
     # lx, ly = ga.translateDNA(ga.pop, env.city_position)
     # 通过计算每个个体中点的距离和，将距离和作为惩罚系数（除数）获取适应度，返回适应度及总距离
-    all_species_cost = ga.get_cost(all_species, bound, ga.length, ga.width)
+    all_species_cost = ga.get_cost(all_species, bound, ga.length, ga.width, ga.p_en, ga.d_en, ga.dg)
     # 进化过程主要
-    ga.mutate(bound, all_species_cost, all_species)
+    ga.mutate(bound, all_species_cost, all_species, t)
     all_species_cost = np.array(all_species_cost)
     best_idx = np.argmin(all_species_cost[:, 0])
     print('Gen:', generation, 'best individual is:', best_idx, '| best fit: %.2f' % all_species_cost[best_idx][0], )
-    env = TravelSalesPerson(best_idx, all_species)
-    env.plotting(best_idx, all_species)
-    if all_species_cost[best_idx][0] == 0:
+    # env = TravelSalesPerson(best_idx, all_species)
+    # env.plotting(best_idx, all_species)
+    if all_species_cost[best_idx][0] == 250:
         break
-    #endtime = datetime.now()
-    #print(endtime)
-    #print((endtime - starttime).seconds)
-    plt.pause(0.00001)
-endtime = datetime.now()
+
+    gd = time()
+    # plt.pause(0.00001)
+    print(gd - gs)
+endtime = time()
 print(endtime)
-print((endtime - starttime).seconds)
+print(endtime - starttime)
 
 # plt.ioff()
 # plt.show()

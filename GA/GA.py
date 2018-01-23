@@ -26,11 +26,12 @@ from tool import csvBrief
 from planinitrunner import translation, plot_draw
 
 POP_SIZE = 2
-N_GENERATIONS = 21600
+N_GENERATIONS = 5
 
 
 BOUND = [[[0, 80], [0, 70]]]
 s = 0
+s.isdig
 for i in BOUND:
     s = s + (i[0][1]-i[0][0]-10) * (i[1][1] - i[1][0]-10)  # s为总面积
 
@@ -288,13 +289,14 @@ for generation in range(N_GENERATIONS):
     best_idx = np.argmin(all_species_cost[:, 0])
     print('Gen:', generation, 'best individual is:', best_idx, '| best fit: %.2f' % all_species_cost[best_idx][0], )
     env = TravelSalesPerson(best_idx, all_species)
-    env.plotting(best_idx, all_species)
+    if generation % 5 == 0:
+        env.plotting(best_idx, all_species)
     if all_species_cost[best_idx][0] == 0:
         break
     #endtime = datetime.now()
     #print(endtime)
     #print((endtime - starttime).seconds)
-    plt.pause(0.00001)
+    # plt.pause(0.00001)
 endtime = datetime.now()
 print(endtime)
 print((endtime - starttime).seconds)

@@ -2,6 +2,7 @@
 产生初始化房间
 """
 import random
+import shelve
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,6 +10,7 @@ from datetime import time, datetime
 import os
 import copy
 
+from planinitrunner.get_cpd import get_cpd, Cpd
 from tool.GA_tools import isnumber
 
 import sys
@@ -42,8 +44,6 @@ BOUND_s = np.array(BOUND_s)
     #         y[i] = [0, 81]
     #     if i != 0:
     #         s = s + ((y[i][1] - y[i][0]) + (y[i-1][1] - y[i-1][0]))*0.1*0.5
-
-
 
 
 Aname = ['麻醉准备间 ', '麻醉恢复区 ', '精密仪器室 ', '无菌包储存室 ', '一次性物品储存室 ', '体外循环室 ', '麻醉用品库 ', '总护士站 ', '快速灭菌', '腔镜洗消间',
@@ -81,10 +81,13 @@ for id in range(len(SPACE_TYPE)):
 
 operation_index_list = [2, 3, 4, 5, 40, 47, 48, 49, 50, 51]   # 手术部各个功能房间的字典索引
 operation_area = 0  # 手术部总面积
+operation_num = 0
 for i in operation_index_list:
+    operation_num += SPACE_NUM[i]
     operation_area += SPACE_AREA[i]*SPACE_NUM[i]
 operation_area_ratio_sqr = (operation_area / S) ** 0.5
 bound_operation = copy.deepcopy(BOUND)
+# 根据手术室占总面积情况，确定手术室的各个边界bound_operation为其边界集合
 for i in range(len(BOUND)):
     x_bound = (BOUND[i, 0, 1] - BOUND[i, 0, 0]) * (1 - operation_area_ratio_sqr) / 2
     y_bound = (BOUND[i, 1, 1] - BOUND[i, 1, 0]) * (1 - operation_area_ratio_sqr) / 2
@@ -92,14 +95,25 @@ for i in range(len(BOUND)):
     bound_operation[i, 1] = np.array([bound_operation[i, 1, 0]+y_bound, bound_operation[i, 1, 1]-y_bound])
 
 
+open_path = '\\..\\file\\rocky\\rocky01.txt'  # 传入cpd表对应的shelve文件的路径
+cpd = Cpd(open_path)
+print(cpd.state_names)
+p = {}
+for _ in range(operation_num):
+    cpd_result = get_cpd(p, cpd)[0][1]
+    # if cpd_result
+# print(lll)
+
+
 class GA(object):
     def __init__(self, bound, pop_size, name_list, width, length, index_dict, type_list, space_num_list,
-                 spaces_type_list, bound_s, s, operation_index_list):
+                 spaces_type_list, bound_s, s, operation_index_list, cpd):
         # self.DNA_size = DNA_size
         # self.cross_rate = cross_rate
         self.bound = bound
         self.bound_s = bound_s
         self.s = s
+        self.operation_index_list = operation_index_list
         self.pop_size = pop_size
         self.name_list = name_list
         self.width = width
@@ -114,17 +128,15 @@ class GA(object):
         #     all_spaces = []
         #     dict = {}
         #     for index, space_num in enumerate(space_num_list):
-
-
-
-
+        operation_num_list = [space_num_list[i] for i in operation_index_list]
 
         for _ in range(pop_size):
             all_spaces = []
             dict = {}
             # for id in range(len(name_list)):
             #     dict[Atype[id]] = id
-            for space_num in operation_index_list:
+            for index in operation_index_list:
+                space_num = space_num_list[index]
                 if space_num != 0:
                     # 根据区间概率，随机选取产生space_num所在的区域区间
                     idx = np.random.choice(len(bound_s), size=space_num, replace=True, p=bound_s / s)
@@ -146,6 +158,35 @@ class GA(object):
                         direction = sap.Direction(1, 0, 1, 1, 0)
                         runtest2.addOneSpace(all_spaces, begin_point, width[index], length[index], name, space_type, direction)
             all_species.append(all_spaces)
+
+        # for _ in range(pop_size):
+        #     all_spaces = []
+        #     dict = {}
+        #     # for id in range(len(name_list)):
+        #     #     dict[Atype[id]] = id
+        #     for index in operation_index_list:
+        #         space_num = space_num_list[index]
+        #         if space_num != 0:
+        #             # 根据区间概率，随机选取产生space_num所在的区域区间
+        #             idx = np.random.choice(len(bound_s), size=space_num, replace=True, p=bound_s / s)
+        #             for bd in idx:
+        #                 bd = bound[bd]
+        #                 position1 = np.random.rand(space_num, 1) * (bd[0][1]-bd[0][0]) + bd[0][0]
+        #                 position2 = np.random.rand(space_num, 1) * (bd[1][1]-bd[1][0]) + bd[1][0]
+        #                 position = np.concatenate((position1, position2), axis=1)
+        #             for i in range(space_num):
+        #                 begin_point = sap.Point3D(position[i][0], position[i][1], 0)
+        #                 # 根据给定的spaces_type_list对应的type确定其space_type
+        #                 space_type = spaces_type_list[index]
+        #                 index_csv = index_dict[space_type]
+        #                 name = name_list[index_csv]+str(len(all_spaces))
+        #                 # area = 30
+        #                 # times = (length[index_csv]*width[index_csv]/area)**0.5
+        #                 # space_len = length[index_csv]/times
+        #                 # space_width = width[index_csv]/times
+        #                 direction = sap.Direction(1, 0, 1, 1, 0)
+        #                 runtest2.addOneSpace(all_spaces, begin_point, width[index], length[index], name, space_type, direction)
+        #     all_species.append(all_spaces)
         self.all_species = all_species
 
     # def get_cost(self, all_species, bound, length, width):
@@ -308,7 +349,8 @@ class TravelSalesPerson(object):
         plt.pause(0.0000000000000000000001)
 
 
-ga = GA(BOUND, POP_SIZE, Aname, WIDTH, LENGTH, DICT, SPACE_TYPE, SPACE_NUM, SPACE_TYPE, BOUND_s, S, operation_index_list)
+ga = GA(BOUND, POP_SIZE, Aname, WIDTH, LENGTH, DICT, SPACE_TYPE, SPACE_NUM, SPACE_TYPE, BOUND_s, S,
+        operation_index_list, cpd)
 starttime = datetime.now()
 print(starttime)
 for generation in range(N_GENERATIONS):
