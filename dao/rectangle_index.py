@@ -1,28 +1,34 @@
 # _*_ coding: UTF-8 _*_
 """
 示例:
-若a = np.array([0, 1, 2, 3, 4, 5, 2, -0.25, -0.5, -0.25])
+
+a = np.array([0, 1, 2, 7, 8, 3, 4, 5, 2, -0.25, -0.5, -0.25])
+若a = np.array([X, Y, Xm, Ym, L, W, SPACE_ID, TYPE, B1, B2, B3, B4])
 此时则有：
-a[X_INDEX]为0---------------矩形a 左下角点x坐标为0
-a[Y_INDEX]为1---------------矩形a 左下角点y坐标为1
-a[L_INDEX]为2---------------矩形a 长度为2
-a[W_INDEX]为3---------------矩形a 宽度为3
-a[SPACE_ID_INDEX]为4--------矩形a 对应的space_id为4
-a[TYPE_INDEX]为5------------矩形a 对应的type为5
-a[B1_INDEX]为2--------------矩形a B1边邻接的房间为2号房间
-a[B2_INDEX]为-0.25-----------矩形a B2边邻接走廊的概率为0.25
-a[B3_INDEX]为-0.5------------矩形a B3边邻接走廊的概率为0.5
-a[B4_INDEX]为-0.25-----------矩形a B4边邻接走廊的概率为0.25
+a[X_INDEX]为X----------------------矩形a 左下角点x坐标为X
+a[Y_INDEX]为Y----------------------矩形a 左下角点y坐标为Y
+a[X_INDEX]为Xm---------------------矩形a 左下角点x坐标为Xm
+a[Y_INDEX]为Ym---------------------矩形a 左下角点y坐标为Ym
+a[L_INDEX]为L----------------------矩形a 长度为L
+a[W_INDEX]为W----------------------矩形a 宽度为W
+a[SPACE_ID_INDEX]为SPACE_ID--------矩形a 对应的space_id为SPACE_ID
+a[TYPE_INDEX]为TYPE----------------矩形a 对应的type为TYPE
+a[B1_INDEX]为B1--------------------矩形a 若B1>0则B1边邻接的房间为B1号房间，否则若B1<0则B1边邻接走廊的概率为B1
+a[B2_INDEX]为B2--------------------矩形a 若B2>0则B1边邻接的房间为B1号房间，否则若B1<0则B1边邻接走廊的概率为B2
+a[B3_INDEX]为B3--------------------矩形a 若B3>0则B1边邻接的房间为B1号房间，否则若B1<0则B1边邻接走廊的概率为B3
+a[B4_INDEX]为B4--------------------矩形a 若B4>0则B1边邻接的房间为B1号房间，否则若B1<0则B1边邻接走廊的概率为B4
 
 """
 X_INDEX = 0
 Y_INDEX = 1
-L_INDEX = 2
-W_INDEX = 3
-SPACE_ID_INDEX = 4
-TYPE_INDEX = 5
-B1_INDEX = 6
-B2_INDEX = 7
-B3_INDEX = 8
-B4_INDEX = 9
+Xm_INDEX = 2
+Ym_INDEX = 3
+L_INDEX = 4
+W_INDEX = 5
+SPACE_ID_INDEX = 6
+TYPE_INDEX = 7
+B1_INDEX = 8
+B2_INDEX = 9
+B3_INDEX = 10
+B4_INDEX = 11
 
