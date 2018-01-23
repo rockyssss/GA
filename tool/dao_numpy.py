@@ -1,7 +1,7 @@
 # _*_ coding: UTF-8 _*_
 import numpy as np
 from dao import spaceApoint as sap
-
+import dao.rectangle_index as ri
 
 def dao2np(spaces):
     """
@@ -23,28 +23,28 @@ def dao2np(spaces):
     for index, space in enumerate(spaces):
         rec = recs[index]
         # ids.append(index)
-        rec[4] = index
+        rec[ri.SPACE_ID_INDEX] = index
 
         # types.append(float(space.type))
-        rec[5] = float(space.type)
+        rec[ri.TYPE_INDEX] = float(space.type)
         for rectangle in space.rectangle:
             # ls.append(rectangle.length)
-            rec[2] = rectangle.length
+            rec[ri.L_INDEX] = rectangle.length
             # ws.append(rectangle.width)
-            rec[3] = rectangle.width
+            rec[ri.W_INDEX] = rectangle.width
             # b1s.append(rectangle.b1)
-            rec[6] = rectangle.b1
+            rec[ri.B1_INDEX] = rectangle.b1
             # b2s.append(rectangle.b2)
-            rec[7] = rectangle.b2
+            rec[ri.B2_INDEX] = rectangle.b2
             # b3s.append(rectangle.b3)
-            rec[8] = rectangle.b3
+            rec[ri.B3_INDEX] = rectangle.b3
             # b4s.append(rectangle.b4)
-            rec[9] = rectangle.b4
+            rec[ri.B4_INDEX] = rectangle.b4
             point3d = rectangle.point3d
             # xs.append(point3d.x)
-            rec[0] = point3d.x
+            rec[ri.X_INDEX] = point3d.x
             # ys.append(point3d.y)
-            rec[1] = point3d.y
+            rec[ri.Y_INDEX] = point3d.y
 
     return recs
 
@@ -67,8 +67,8 @@ def np2dao(recs):
     direction=sap.Direction(1,0,1,1,0)
     spaces = []
     for rec in recs:
-        p3d=sap.Point3D(rec[0], rec[1], 0)
-        rectan=sap.Rectangle(rec[2],rec[3],p3d,direction,rec[1],rec[2],rec[3],rec[4])
-        space=sap.Space("",rec[4],rectan)
+        p3d=sap.Point3D(rec[ri.X_INDEX], rec[ri.Y_INDEX], 0)
+        rectan=sap.Rectangle(rec[ri.L_INDEX],rec[ri.W_INDEX],p3d,direction,rec[ri.Y_INDEX],rec[ri.L_INDEX],rec[ri.W_INDEX],rec[ri.SPACE_ID_INDEX])
+        space=sap.Space("",rec[ri.SPACE_ID_INDEX],rectan)
         spaces.append(space)
     return spaces

@@ -7,16 +7,16 @@ import dao.rectangle_index as ri
 
 def draw(rectanges):
     """
-    x_index = 0
-    y_index = 1
-    l_index = 2
-    w_index = 3
-    space_id_index = 4
-    type_index = 5
-    b1_index = 6
-    b2_index = 7
-    b3_index = 8
-    b4_index = 9
+    X_INDEX = 0
+    Y_INDEX = 1
+    L_INDEX = 2
+    W_INDEX = 3
+    SPACE_ID_INDEX = 4
+    TYPE_INDEX = 5
+    B1_INDEX = 6
+    B2_INDEX = 7
+    B3_INDEX = 8
+    B4_INDEX = 9
 
     :param rectanges:
     :return:
@@ -32,28 +32,28 @@ def draw(rectanges):
         y = []  # Make an array of y values for each x value
 
 
-        x0 = rec[0]
-        y0 = rec[1]
+        x0 = rec[ri.X_INDEX]
+        y0 = rec[ri.Y_INDEX]
         x.append(x0)
         y.append(y0)
-        x1 = rec[0]
-        y1 = rec[1] + rec[3]
+        x1 = rec[ri.X_INDEX]
+        y1 = rec[ri.Y_INDEX] + rec[ri.W_INDEX]
         x.append(x1)
         y.append(y1)
-        x2 = rec[0] + rec[2]
-        y2 = rec[1] + rec[3]
+        x2 = rec[ri.X_INDEX] + rec[ri.L_INDEX]
+        y2 = rec[ri.Y_INDEX] + rec[ri.W_INDEX]
         x.append(x2)
         y.append(y2)
-        x3 = rec[0] + rec[2]
-        y3 = rec[1]
+        x3 = rec[ri.X_INDEX] + rec[ri.L_INDEX]
+        y3 = rec[ri.Y_INDEX]
         x.append(x3)
         y.append(y3)
         # 回到原点闭合成矩形
         x.append(x0)
         y.append(y0)
-        center_pointx = rec[0] + rec[2]  / 2
-        center_pointy = rec[1] + rec[3] / 2
-        floor1.text(center_pointx, center_pointy, ri.Adict[rec[5]], fontproperties='SimHei', horizontalalignment='center',
+        center_pointx = rec[ri.X_INDEX] + rec[ri.L_INDEX]  / 2
+        center_pointy = rec[ri.Y_INDEX] + rec[ri.W_INDEX] / 2
+        floor1.text(center_pointx, center_pointy, rec[ri.Adict[rec[ri.TYPE_INDEX]]], fontproperties='SimHei', horizontalalignment='center',
                     verticalalignment='center' ,)
         # 这按照房间plot
         floor1.plot(x, y, '-')
