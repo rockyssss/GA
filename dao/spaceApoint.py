@@ -55,7 +55,7 @@ class Space:
 
 
 class Rectangle:
-    def __init__(self, length, width, point3d, Direction):
+    def __init__(self, length, width, point3d, Direction,b1,b2,b3,b4):
         """
         某个区域或者房间的矩形数据
         :param length: 矩形的长度（与direction方向相同）
@@ -67,6 +67,10 @@ class Rectangle:
         self.width = width  # 垂直于direction方向的长度
         self.point3d = point3d
         self.Direction = Direction
+        self.b1 = b1
+        self.b2 = b2
+        self.b3 = b3
+        self.b4 = b4
 
 
 class Point3D:
