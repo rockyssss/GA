@@ -32,28 +32,28 @@ def draw(rectanges):
         y = []  # Make an array of y values for each x value
 
 
-        x0 = rec[ri.X_INDEX]
-        y0 = rec[ri.Y_INDEX]
+        x0 = rec[ri.X_MIN_INDEX]
+        y0 = rec[ri.Y_MIN_INDEX]
         x.append(x0)
         y.append(y0)
-        x1 = rec[ri.X_INDEX]
-        y1 = rec[ri.Y_INDEX] + rec[ri.W_INDEX]
+        x1 = rec[ri.X_MIN_INDEX]
+        y1 = rec[ri.Y_MIN_INDEX] + rec[ri.W_INDEX]
         x.append(x1)
         y.append(y1)
-        x2 = rec[ri.X_INDEX] + rec[ri.L_INDEX]
-        y2 = rec[ri.Y_INDEX] + rec[ri.W_INDEX]
+        x2 = rec[ri.X_MIN_INDEX] + rec[ri.L_INDEX]
+        y2 = rec[ri.Y_MIN_INDEX] + rec[ri.W_INDEX]
         x.append(x2)
         y.append(y2)
-        x3 = rec[ri.X_INDEX] + rec[ri.L_INDEX]
-        y3 = rec[ri.Y_INDEX]
+        x3 = rec[ri.X_MIN_INDEX] + rec[ri.L_INDEX]
+        y3 = rec[ri.Y_MIN_INDEX]
         x.append(x3)
         y.append(y3)
         # 回到原点闭合成矩形
         x.append(x0)
         y.append(y0)
-        center_pointx = rec[ri.X_INDEX] + rec[ri.L_INDEX]  / 2
-        center_pointy = rec[ri.Y_INDEX] + rec[ri.W_INDEX] / 2
-        floor1.text(center_pointx, center_pointy, rec[ri.Adict[rec[ri.TYPE_INDEX]]], fontproperties='SimHei', horizontalalignment='center',
+        center_pointx = rec[ri.X_MIN_INDEX] + rec[ri.L_INDEX]  / 2
+        center_pointy = rec[ri.Y_MIN_INDEX] + rec[ri.W_INDEX] / 2
+        floor1.text(center_pointx, center_pointy, ri.Adict[int(rec[ri.TYPE_INDEX])], fontproperties='SimHei', horizontalalignment='center',
                     verticalalignment='center' ,)
         # 这按照房间plot
         floor1.plot(x, y, '-')

@@ -5,21 +5,25 @@ import dao.rectangle_index as ri
 
 def dao2np(spaces):
     """
-    X_INDEX = 0
-    Y_INDEX = 1
-    L_INDEX = 2
-    W_INDEX = 3
-    SPACE_ID_INDEX = 4
-    TYPE_INDEX = 5
-    B1_INDEX = 6
-    B2_INDEX = 7
-    B3_INDEX = 8
-    B4_INDEX = 9
+    RS_LEN=13
+    X_MIN_INDEX = 0
+    Y_MIN_INDEX = 1
+    X_MAX_INDEX = 2
+    Y_MAX_INDEX = 3
+    L_INDEX = 4
+    W_INDEX = 5
+    SPACE_ID_INDEX = 6
+    TYPE_INDEX = 7
+    B1_INDEX = 8
+    B2_INDEX = 9
+    B3_INDEX = 10
+    B4_INDEX = 11
+    BOUND_INDEX = 12
     :param spaces:
     :return:
     """
 
-    recs = np.zeros((len(spaces), 10))
+    recs = np.zeros((len(spaces), ri.RS_LEN))
     for index, space in enumerate(spaces):
         rec = recs[index]
         # ids.append(index)
@@ -42,9 +46,9 @@ def dao2np(spaces):
             rec[ri.B4_INDEX] = rectangle.b4
             point3d = rectangle.point3d
             # xs.append(point3d.x)
-            rec[ri.X_INDEX] = point3d.x
+            rec[ri.X_MIN_INDEX] = point3d.x
             # ys.append(point3d.y)
-            rec[ri.Y_INDEX] = point3d.y
+            rec[ri.Y_MIN_INDEX] = point3d.y
 
     return recs
 
@@ -52,7 +56,7 @@ def dao2np(spaces):
 def np2dao(recs):
     """
         X_INDEX = 0
-        Y_INDEX = 1
+        Y_MIN_INDEX = 1
         L_INDEX = 2
         W_INDEX = 3
         SPACE_ID_INDEX = 4
@@ -67,8 +71,8 @@ def np2dao(recs):
     direction=sap.Direction(1,0,1,1,0)
     spaces = []
     for rec in recs:
-        p3d=sap.Point3D(rec[ri.X_INDEX], rec[ri.Y_INDEX], 0)
-        rectan=sap.Rectangle(rec[ri.L_INDEX],rec[ri.W_INDEX],p3d,direction,rec[ri.Y_INDEX],rec[ri.L_INDEX],rec[ri.W_INDEX],rec[ri.SPACE_ID_INDEX])
+        p3d=sap.Point3D(rec[ri.X_MIN_INDEX], rec[ri.Y_MIN_INDEX], 0)
+        rectan=sap.Rectangle(rec[ri.L_INDEX],rec[ri.W_INDEX],p3d,direction,rec[ri.Y_MIN_INDEX],rec[ri.L_INDEX],rec[ri.W_INDEX],rec[ri.SPACE_ID_INDEX])
         space=sap.Space("",rec[ri.SPACE_ID_INDEX],rectan)
         spaces.append(space)
     return spaces

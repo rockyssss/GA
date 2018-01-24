@@ -322,17 +322,17 @@ for generation in range(N_GENERATIONS):
     all_species_cost = np.array(all_species_cost)
     best_idx = np.argmin(all_species_cost[:, 0])
     print('Gen:', generation, 'best individual is:', best_idx, '| best fit: %.2f' % all_species_cost[best_idx][0], )
-    # env = TravelSalesPerson(best_idx, all_species)
-    # env.plotting(best_idx, all_species)
+    env = TravelSalesPerson(best_idx, all_species)
+    env.plotting(best_idx, all_species)
     if all_species_cost[best_idx][0] == 250:
         break
 
     gd = time()
-    # plt.pause(0.00001)
+    plt.pause(5)
     print(gd - gs)
 endtime = time()
 print(endtime)
 print(endtime - starttime)
 
-# plt.ioff()
-# plt.show()
+plt.ioff()
+plt.show()

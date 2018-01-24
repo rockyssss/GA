@@ -7,8 +7,8 @@ a = np.array([0, 1, 2, 7, 8, 3, 4, 5, 2, -25, -50, -25,2])
 此时则有：
 a[X_MIN_INDEX]为X------------------矩形a 左下角点x坐标(最小的x)为X
 a[Y_MIN_INDEX]为Y------------------矩形a 左下角点y坐标(最小的y)为Y
-a[X_MAX_INDEX]为X_MAX--------------矩形a 左下角点x坐标(最大的x)为X_MAX
-a[Y_MAX_INDEX]为Y_MAX--------------矩形a 左下角点y坐标(最大的y)为Y_MAX
+a[X_MAX_INDEX]为X_MAX--------------矩形a 右上角点x坐标(最大的x)为X_MAX
+a[Y_MAX_INDEX]为Y_MAX--------------矩形a 右上角点y坐标(最大的y)为Y_MAX
 a[L_INDEX]为L----------------------矩形a 长度为L
 a[W_INDEX]为W----------------------矩形a 宽度为W
 a[SPACE_ID_INDEX]为SPACE_ID--------矩形a 对应的space_id为SPACE_ID
