@@ -18,9 +18,9 @@ def chagePoints(spaces, beginPoint, direction):
 
 
 def chagePoints_np(rectangles):
-    beginPoint=(rectangles[0][ri.X_INDEX],rectangles[0][ri.Y_INDEX])
+    beginPoint=(rectangles[0][ri.X_MIN_INDEX],rectangles[0][ri.Y_MIN_INDEX])
     for rec in rectangles:
-        dxy = other.crossSingle(rec[ri.X_INDEX], rec[ri.Y_INDEX]),
+        dxy = other.crossSingle(rec[ri.X_MIN_INDEX], rec[ri.Y_MIN_INDEX]),
         [rec[ri.L_INDEX], rec[ri.W_INDEX]], sap.Direction(1,0,1,1,0)
     beginPoint = (dxy[0], dxy[1])
 
