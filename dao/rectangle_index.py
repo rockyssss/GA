@@ -2,13 +2,13 @@
 """
 示例:
 
-a = np.array([0, 1, 2, 7, 8, 3, 4, 5, 2, -0.25, -0.5, -0.25])
-若a = np.array([X, Y, Xm, Ym, L, W, SPACE_ID, TYPE, B1, B2, B3, B4])
+a = np.array([0, 1, 2, 7, 8, 3, 4, 5, 2, -25, -50, -25,2])
+若a = np.array([X_MIN, Y_MIN, Xm, Ym, L, W, SPACE_ID, TYPE, B1, B2, B3, B4, BOUND])
 此时则有：
-a[X_INDEX]为X----------------------矩形a 左下角点x坐标为X
-a[Y_INDEX]为Y----------------------矩形a 左下角点y坐标为Y
-a[Xm_INDEX]为Xm---------------------矩形a 左下角点x坐标为Xm
-a[Ym_INDEX]为Ym---------------------矩形a 左下角点y坐标为Ym
+a[X_MIN_INDEX]为X------------------矩形a 左下角点x坐标(最小的x)为X
+a[Y_MIN_INDEX]为Y------------------矩形a 左下角点y坐标(最小的y)为Y
+a[X_MAX_INDEX]为X_MAX--------------矩形a 左下角点x坐标(最大的x)为X_MAX
+a[Y_MAX_INDEX]为Y_MAX--------------矩形a 左下角点y坐标(最大的y)为Y_MAX
 a[L_INDEX]为L----------------------矩形a 长度为L
 a[W_INDEX]为W----------------------矩形a 宽度为W
 a[SPACE_ID_INDEX]为SPACE_ID--------矩形a 对应的space_id为SPACE_ID
@@ -17,12 +17,13 @@ a[B1_INDEX]为B1--------------------矩形a 若B1>0则B1边邻接的房间为B1�
 a[B2_INDEX]为B2--------------------矩形a 若B2>0则B1边邻接的房间为B1号房间，否则若B1<0则B1边邻接走廊的概率为B2
 a[B3_INDEX]为B3--------------------矩形a 若B3>0则B1边邻接的房间为B1号房间，否则若B1<0则B1边邻接走廊的概率为B3
 a[B4_INDEX]为B4--------------------矩形a 若B4>0则B1边邻接的房间为B1号房间，否则若B1<0则B1边邻接走廊的概率为B4
+a[BOUND_INDEX]为BOUND--------------矩形a 所在的区域边界的索引为BOUND
 
 """
-X_INDEX = 0
-Y_INDEX = 1
-Xm_INDEX = 2
-Ym_INDEX = 3
+X_MIN_INDEX = 0
+Y_MIN_INDEX = 1
+X_MAX_INDEX = 2
+Y_MAX_INDEX = 3
 L_INDEX = 4
 W_INDEX = 5
 SPACE_ID_INDEX = 6
@@ -31,7 +32,7 @@ B1_INDEX = 8
 B2_INDEX = 9
 B3_INDEX = 10
 B4_INDEX = 11
-
+BOUND_INDEX = 12
 
 Aname = ['麻醉准备间 ', '麻醉恢复区 ', '精密仪器室 ', '无菌包储存室 ', '一次性物品储存室 ', '体外循环室 ', '麻醉用品库 ', '总护士站 ', '快速灭菌', '腔镜洗消间',
          '家属等候区 ',
