@@ -1,4 +1,5 @@
 from dao import rectangle_index as rec
+
 # rectangle的平移
 def translation(spacesarray, index, delta_x, delta_y):
         # X对应的数组下标
@@ -6,6 +7,8 @@ def translation(spacesarray, index, delta_x, delta_y):
     # Y对应的数组下标
     spacesarray[index][rec.Y_MIN_INDEX] = spacesarray[index][rec.Y_MIN_INDEX] + delta_y
     return spacesarray
+
+
 # space的平移
 def tanslationrec(spacesarray, spacesdic, spaceid, delta_x, delta_y):
     listrec = spacesdic.get(spaceid)
