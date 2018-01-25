@@ -23,7 +23,7 @@ def dao2np(spaces):
     :return:
     """
 
-    recs = np.zeros((len(spaces), ri.RS_LEN))
+    recs = np.zeros((len(spaces), ri.COLUMN_NUM))
     for index, space in enumerate(spaces):
         rec = recs[index]
         # ids.append(index)
