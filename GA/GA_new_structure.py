@@ -12,7 +12,7 @@ import copy
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 import sys
-from tool.GA_tools import isnumber, new_ros
+from tool.GA_tools import *
 
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
@@ -157,7 +157,7 @@ class GA(object):
 
     # def route_cost(self,all_species,doctor,patien):
 
-    @jit
+    # @jit
     def get_cost(self, all_species, bound, length, width, p_en, d_en, dg):
         # bound = [[[0, 500], [0, 500]]]
         d = []
@@ -174,7 +174,6 @@ class GA(object):
             route_cost = 0
             route_cost_dict = dict()
             # 重叠的损失计算
-
             # 重叠的损失计算/超越边界计算
             for index1, space1 in enumerate(all_spaces):
 
@@ -190,10 +189,11 @@ class GA(object):
                     min_y1 = space1[Y_MIN_INDEX]
                     bound_index = space1[BOUND_INDEX]
                     # 超越边界计算
-                    max_xs = np.max([bound[bound_index][0][1], max_x1])
-                    max_ys = np.max([bound[bound_index][1][1], max_y1])
-                    min_xs = np.min([bound[bound_index][0][0], min_x1])
-                    min_ys = np.min([bound[bound_index][1][0], min_y1])
+                    max_xs = get_max_np([bound[bound_index][0][1], max_x1])
+                    max_ys = get_max_np([bound[bound_index][1][1], max_y1])
+                    min_xs = get_min_np([bound[bound_index][0][0], min_x1])
+                    min_ys = get_min_np([bound[bound_index][1][0], min_y1])
+                    # min_ys = np.min([bound[bound_index][1][0], min_y1])
                     cross_x = (max_xs - min_xs) - (bound[bound_index][0][1] - bound[bound_index][0][0])
                     cross_y = (max_ys - min_ys) - (bound[bound_index][1][1] - bound[bound_index][1][0])
                     if cross_x > 0 or cross_y > 0:
@@ -222,10 +222,14 @@ class GA(object):
                         max_y2 = space2[Y_MAX_INDEX]
                         min_x2 = space2[X_MIN_INDEX]
                         min_y2 = space2[Y_MIN_INDEX]
-                        max_xc = np.max([max_x1, max_x2])
-                        max_yc = np.max([max_y1, max_y2])
-                        min_xc = np.min([min_x1, min_x2])
-                        min_yc = np.max([min_y1, min_y2])
+                        max_xc = get_max_np([max_x1, max_x2])
+                        max_yc = get_max_np([max_y1, max_y2])
+                        min_xc = get_min_np([min_x1, min_x2])
+                        min_yc = get_min_np([min_y1, min_y2])
+                        # max_xc = np.max([max_x1, max_x2])
+                        # max_yc = np.max([max_y1, max_y2])
+                        # min_xc = np.min([min_x1, min_x2])
+                        # min_yc = np.max([min_y1, min_y2])
                         d_x1 = max_x1 - min_x1
                         d_x2 = max_x2 - min_x2
                         d_y1 = max_y1 - min_y1
@@ -280,18 +284,18 @@ class GA(object):
                 route_cost = set({int(i) for i in np.array(st)[:, 1]})
                 all_move_set = route_cost | cross_cost_index | over_bound_index
                 for space_index in all_move_set:
-                        space = all_spaces[space_index]
-                        # spaces = [space]
-                        max_x = space[X_MAX_INDEX]
-                        max_y = space[Y_MAX_INDEX]
-                        min_x = space[X_MIN_INDEX]
-                        min_y = space[Y_MIN_INDEX]
-                        # print(bound)
-                        d_x = np.random.randint(bound[0][0][0] - min_x, bound[0][0][1] - max_x)
-                        d_y = np.random.randint(bound[0][1][0] - min_y, bound[0][1][1] - max_y)
-                        # d_x = np.random.randint(bound[0][0][0] - min_x, bound[0][0][1] - max_x) * dt
-                        # d_y = np.random.randint(bound[0][1][0] - min_y, bound[0][1][1] - max_y) * dt
-                        all_spaces[space_index] = translation.translation(space, d_x, d_y)
+                    space = all_spaces[space_index]
+                    # spaces = [space]
+                    max_x = space[X_MAX_INDEX]
+                    max_y = space[Y_MAX_INDEX]
+                    min_x = space[X_MIN_INDEX]
+                    min_y = space[Y_MIN_INDEX]
+                    # print(bound)
+                    d_x = np.random.randint(bound[0][0][0] - min_x, bound[0][0][1] - max_x)
+                    d_y = np.random.randint(bound[0][1][0] - min_y, bound[0][1][1] - max_y)
+                    # d_x = np.random.randint(bound[0][0][0] - min_x, bound[0][0][1] - max_x) * dt
+                    # d_y = np.random.randint(bound[0][1][0] - min_y, bound[0][1][1] - max_y) * dt
+                    all_spaces[space_index] = translation.translation(space, d_x, d_y)
                 # for space_index in over_bound_index:
                 #     space = all_spaces[space_index]
                 #     spaces = [space]

@@ -1,5 +1,7 @@
 # _*_ coding: UTF-8 _*_
 import numpy as np
+from numba import jit
+
 
 def isnumber(a_string):
     """
@@ -35,3 +37,21 @@ def new_ros(X_MIN, Y_MIN, Xm, Ym, L, W, SPACE_ID, TYPE, B1, B2, B3, B4, BOUND):
     return np.array([X_MIN, Y_MIN, Xm, Ym, L, W, SPACE_ID, TYPE, B1, B2, B3, B4, BOUND])
 
 
+# @jit
+def get_max_np(lis):
+    """
+    以np方式，获取lis最大值
+    :param lis:
+    :return:
+    """
+    return np.max(lis)
+
+
+# @jit
+def get_min_np(lis):
+    """
+    以np方式，获取lis最小值
+    :param lis:
+    :return:
+    """
+    return np.min(lis)
