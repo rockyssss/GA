@@ -2,18 +2,17 @@
 Visualize Genetic Algorithm to find the shortest path for travel sales problem.
 """
 import random
-from dao.rectangle_index import *
+import shelve
+
 import matplotlib.pyplot as plt
 import numpy as np
 # from datetime import time, datetime
 from timeit import default_timer as time
 import os
-import copy
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 import sys
-from tool.GA_tools import *
 
+import multiprocessing as mp
 curPath = os.path.abspath(os.path.dirname(__file__))
 rootPath = os.path.split(curPath)[0]
 sys.path.append(rootPath)
@@ -21,21 +20,24 @@ from numba import jit
 import planinitrunner.runtest2 as runtest2
 from dao import GAspaceApoint2 as sap
 from tool import csvBrief, translation, draw
-
+from dao.rectangle_index import *
+from planinit.ptah_config import RATIO_PATH
+from tool.GA_tools import *
 
 def distance_2_m(np_arr, accuracy):
     np_arr = np.around(np_arr / accuracy, decimals=0).astype(int)
     return np_arr
 
 
+PROCESS_NUM = 1
 DT = 1
-POP_SIZE = 5000
+POP_SIZE = 500
 ACCUR = 0.001
-N_GENERATIONS = 10
+N_GENERATIONS = 2000
 SPACE_TYPE = np.array(['51449600', '51446500', '51442113', '51171300', '51543115', '51172100','51446300', '51348400',
                        '51446100', '51448700']).astype(int)
 # SPACE_NUM = [2, 2, 2, 2, 2, 2, 2, 2, 2, 0]
-SPACE_NUM = np.array([1, 2, 0, 0, 0, 0, 0, 0, 0, 0])
+SPACE_NUM = np.array([2, 2, 0, 0, 0, 0, 0, 0, 0, 0])
 DG = {51449600: 3, 51446500: 2, 51442113: 1}
 D_EN = np.array([5, 0, 0])
 D_EN_M = distance_2_m(D_EN, ACCUR)
@@ -59,7 +61,9 @@ ResultArea = [i if i > 0 else 0 for i in ResultArea]
 # ResultArea = distance_2_m(np.array(ResultArea), ACCUR)
 
 ROOMS_NUM = 40
-dataPath2 = os.getcwd() + "/../file/ratio.csv"  # 长宽比数据
+
+
+dataPath2 = RATIO_PATH  # 长宽比数据
 data2 = csvBrief.readListCSV(dataPath2)
 data2 = data2[1:]  # 长宽数据集合
 TYPE = np.array(data2[3])
@@ -203,7 +207,7 @@ class GA(object):
 
                 # 动线计算
                 cost = abs(min_x1 - d_en[0]) + abs(min_x1 - p_en[0]) + abs(min_y1 - d_en[1]) + abs(min_y1 - p_en[1])
-                if cross_cost < 10/ACCUR:
+                if cross_cost < 10:
                     cost = cost*dg[space1[TYPE_INDEX]]
                 else:
                     cost = cost * dg[space1[TYPE_INDEX]]*0.001
@@ -283,6 +287,7 @@ class GA(object):
                 st = list(route_cost_dict.values())
                 route_cost = set({int(i) for i in np.array(st)[:, 1]})
                 all_move_set = route_cost | cross_cost_index | over_bound_index
+                # np.random.seed(os.getpid())
                 for space_index in all_move_set:
                     space = all_spaces[space_index]
                     # spaces = [space]
@@ -335,6 +340,56 @@ class GA(object):
         self.all_species = all_species
 
 
+def multi(process_num):
+    np.random.seed(os.getpid())
+    ga = GA(BOUND_M, int(POP_SIZE/process_num), WIDTH_M, LENGTH_M, DICT, TYPE, SPACE_NUM, SPACE_TYPE, D_EN_M, P_EN_M, DG, BOUND_s, S,
+            COLUMN_NUM)
+    starttime = time()
+    print(starttime)
+    t = 1
+    best_idx = 0
+    all_species_cost = []
+    all_species = ga.all_species
+    for generation in range(N_GENERATIONS):
+        gs = time()
+        bound = ga.bound
+        t = t * DT
+        # lx, ly分别为每一代中x,y坐标矩阵，每一行为每个个体对应点坐标
+        # lx, ly = ga.translateDNA(ga.pop, env.city_position)
+        # 通过计算每个个体中点的距离和，将距离和作为惩罚系数（除数）获取适应度，返回适应度及总距离
+        # pool = mp.Pool(processes=5)
+        # cc = [all_species, bound, ga.length, ga.width, ga.p_en, ga.d_en, ga.dg]
+        # all_species_cost = pool.apply_async(ga.get_cost, cc).get()
+        all_species_cost = ga.get_cost(all_species, bound, ga.length, ga.width, ga.p_en, ga.d_en, ga.dg)
+        # 进化过程主要
+        ga.mutate(bound, all_species_cost, all_species, t)
+        all_species_cost = np.array(all_species_cost)
+        best_idx = np.argmin(all_species_cost[:, 0])
+        print('process is:', os.getpid(), 'Gen:', generation, 'best individual is:', best_idx, '| best fit: %.2f'
+              % all_species_cost[best_idx][0], )
+        env = TravelSalesPerson(best_idx, all_species)
+        env.plotting(best_idx, all_species)
+        if all_species_cost[best_idx][0] == 250:
+            break
+
+        gd = time()
+        # plt.pause(0.00001)
+        print(gd - gs)
+    endtime = time()
+    print(endtime)
+    print(endtime - starttime)
+    if not os.path.isdir(os.getcwd()+'/res/'):
+        os.mkdir(os.getcwd()+'/res/')
+    save_path = os.getcwd()+'/res/'+str(os.getpid())+'.txt'
+    with shelve.open(save_path) as f:
+        f['all_species'] = all_species
+        f['best_idx'] = best_idx
+        f['all_species_cost'] = all_species_cost
+
+    plt.ioff()
+    plt.show()
+    # q.put(all_species)
+
 class TravelSalesPerson(object):
     def __init__(self, best_idx, all_species):
         self.best_idx = best_idx
@@ -351,36 +406,18 @@ class TravelSalesPerson(object):
         plt.pause(0.0000000000000000000001)
 
 
-ga = GA(BOUND_M, POP_SIZE, WIDTH_M, LENGTH_M, DICT, TYPE, SPACE_NUM, SPACE_TYPE, D_EN_M, P_EN_M, DG, BOUND_s, S,
-        COLUMN_NUM)
-starttime = time()
-print(starttime)
-t = 1
-for generation in range(N_GENERATIONS):
-    gs = time()
-    all_species = ga.all_species
-    bound = ga.bound
-    t = t * DT
-    # lx, ly分别为每一代中x,y坐标矩阵，每一行为每个个体对应点坐标
-    # lx, ly = ga.translateDNA(ga.pop, env.city_position)
-    # 通过计算每个个体中点的距离和，将距离和作为惩罚系数（除数）获取适应度，返回适应度及总距离
-    all_species_cost = ga.get_cost(all_species, bound, ga.length, ga.width, ga.p_en, ga.d_en, ga.dg)
-    # 进化过程主要
-    ga.mutate(bound, all_species_cost, all_species, t)
-    all_species_cost = np.array(all_species_cost)
-    best_idx = np.argmin(all_species_cost[:, 0])
-    print('Gen:', generation, 'best individual is:', best_idx, '| best fit: %.2f' % all_species_cost[best_idx][0], )
-    env = TravelSalesPerson(best_idx, all_species)
-    env.plotting(best_idx, all_species)
-    if all_species_cost[best_idx][0] == 250:
-        break
 
-    gd = time()
-    plt.pause(0.00001)
-    print(gd - gs)
-endtime = time()
-print(endtime)
-print(endtime - starttime)
 
-plt.ioff()
-plt.show()
+
+if __name__ == '__main__':
+
+
+
+
+
+    # q = mp.Queue()
+    for i in range(PROCESS_NUM):
+        p1 = mp.Process(target=multi, args=(PROCESS_NUM,))
+        p1.start()
+        # p1.join()
+

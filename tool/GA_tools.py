@@ -37,7 +37,7 @@ def new_ros(X_MIN, Y_MIN, Xm, Ym, L, W, SPACE_ID, TYPE, B1, B2, B3, B4, BOUND):
     return np.array([X_MIN, Y_MIN, Xm, Ym, L, W, SPACE_ID, TYPE, B1, B2, B3, B4, BOUND])
 
 
-# @jit
+@jit
 def get_max_np(lis):
     """
     以np方式，获取lis最大值
@@ -47,7 +47,7 @@ def get_max_np(lis):
     return np.max(lis)
 
 
-# @jit
+@jit
 def get_min_np(lis):
     """
     以np方式，获取lis最小值

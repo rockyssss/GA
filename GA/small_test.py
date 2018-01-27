@@ -110,17 +110,50 @@
 # print('cuda speedup: %.2fx' % (tcpu / tcuda))
 #
 
-x = 1111111111111111
-def f1():
-    x=1
-    y = 2
-    print('------>f1 ',x)
-    def f2():
-        x = 2
-        print('---->f2 ',x)
-        def f3():
-            x= 3
-            print('-->f3 ',x)
-        f3()
-    f2()
-f1()
+# x = 1111111111111111
+# def f1():
+#     x=1
+#     y = 2
+#     print('------>f1 ',x)
+#     def f2():
+#         x = 2
+#         print('---->f2 ',x)
+#         def f3():
+#             x= 3
+#             print('-->f3 ',x)
+#         f3()
+#     f2()
+# f1()
+import multiprocessing as mp
+import shelve
+import threading as td
+import time
+
+
+# def multi_run_wrapper(args):
+#    return add(*args)
+#
+#
+# def add(x,y):
+#     return x+y
+#
+#
+# if __name__ == "__main__":
+#     from multiprocessing import Pool
+#     pool = Pool(4)
+#     results = pool.map(multi_run_wrapper,[(1,2),(2,3),(3,4)])
+#     print(results)
+import os
+save_path2 = os.getcwd() + '\\res\\' + str(4712) + '.txt'
+save_path3 = os.getcwd() + '\\res\\' + str(4713) + '.txt'
+
+with shelve.open(save_path2) as f:
+    all_species2 = f['all_species']
+    best_idx2 = f['best_idx']
+    all_species_cost2 = f['all_species_cost']
+
+with shelve.open(save_path3) as f:
+    all_species3 = f['all_species']
+    best_idx3 = f['best_idx']
+    all_species_cost3 = f['all_species_cost']
+print(12)
