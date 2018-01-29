@@ -31,13 +31,13 @@ def distance_2_m(np_arr, accuracy):
 
 PROCESS_NUM = 1
 DT = 1
-POP_SIZE = 500
+POP_SIZE = 50
 ACCUR = 0.001
 N_GENERATIONS = 2000
 SPACE_TYPE = np.array(['51449600', '51446500', '51442113', '51171300', '51543115', '51172100','51446300', '51348400',
                        '51446100', '51448700']).astype(int)
 # SPACE_NUM = [2, 2, 2, 2, 2, 2, 2, 2, 2, 0]
-SPACE_NUM = np.array([2, 2, 0, 0, 0, 0, 0, 0, 0, 0])
+SPACE_NUM = np.array([3, 2, 0, 0, 0, 0, 0, 0, 0, 0])
 DG = {51449600: 3, 51446500: 2, 51442113: 1}
 D_EN = np.array([5, 0, 0])
 D_EN_M = distance_2_m(D_EN, ACCUR)
@@ -124,6 +124,10 @@ class GA(object):
         sum_space_num = space_num_list.sum()
         all_spaces = np.zeros([sum_space_num, COLUMN_NUM], dtype=int)
         all_species = np.zeros([pop_size, sum_space_num, COLUMN_NUM], dtype=int)
+        # type_index_dict结构类似{51449600:{1,2}, 51446500:{3,5}, 51442113:{8}
+        type_index_dict = dict()
+        for space_type in spaces_type_list:
+            type_index_dict[space_type] = set()
         for pop_index in range(pop_size):
 
             dict = {}
@@ -154,10 +158,12 @@ class GA(object):
                         # 根据给定的spaces_type_list对应的type确定其space_type
                         # direction = sap.Direction(1, 0, 1, 1, 0)
                         all_spaces[space_id] = space
+                        type_index_dict[space_type].add(space_id)
                         space_id += 1
 
             all_species[pop_index] = all_spaces
         self.all_species = all_species
+        self.type_index_dict = type_index_dict
 
     # def route_cost(self,all_species,doctor,patien):
 
@@ -210,7 +216,7 @@ class GA(object):
                 if cross_cost < 10:
                     cost = cost*dg[space1[TYPE_INDEX]]
                 else:
-                    cost = cost * dg[space1[TYPE_INDEX]]*0.001
+                    cost = cost * dg[space1[TYPE_INDEX]]*0.01
                 if space1[TYPE_INDEX] in route_cost_dict.keys():
                     if cost > route_cost_dict[space1[TYPE_INDEX]][0]:
                         route_cost_dict[space1[TYPE_INDEX]] = [cost, index1]
